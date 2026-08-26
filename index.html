@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbfbfd">
+  <title>Know Your Time</title>
+  <link rel="icon" href="app_icon.jpg">
+  <link rel="apple-touch-icon" href="app_icon.jpg">
+  <style>
+    :root {
+      --bg: #fbfbfd; --card: rgba(255,255,255,.88); --border: rgba(0,0,0,.1);
+      --text: #1d1d1f; --muted: #6e6e73; --soft: rgba(0,0,0,.055);
+      --primary: #1d1d1f; --primary-text: #fff; --focus: #0a84ff;
+      --shadow: 0 10px 34px rgba(0,0,0,.07); --danger: #b42318;
+    }
+    body.dark-mode {
+      --bg: #000; --card: rgba(28,28,30,.84); --border: rgba(255,255,255,.14);
+      --text: #f5f5f7; --muted: #a1a1a6; --soft: rgba(255,255,255,.09);
+      --primary: #f5f5f7; --primary-text: #000; --focus: #64d2ff;
+      --shadow: 0 12px 38px rgba(0,0,0,.58); --danger: #ff9f9a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh; margin: 0; padding: 2.25rem 1rem; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased; transition: background .2s, color .2s;
+    }
+    button, input, select, textarea { font: inherit; }
+    button, select, input { color: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid var(--focus); outline-offset: 2px;
+    }
+    button:disabled { cursor: not-allowed; opacity: .42; }
+    .container { width: 100%; max-width: 760px; margin: 0 auto; display: grid; gap: 1.25rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0 .2rem; }
+    .brand { display: flex; gap: .72rem; align-items: center; min-width: 0; }
+    .brand img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+    h1 { margin: 0; font-size: 1.3rem; letter-spacing: -.02em; }
+    .header-actions, .export-actions, .control-row { display: flex; align-items: center; gap: .5rem; }
+    .icon-btn, .btn, .segmented-btn, .mean-btn {
+      border: 1px solid var(--border); background: var(--card); border-radius: 999px; min-height: 40px;
+      padding: .55rem .85rem; box-shadow: 0 2px 10px rgba(0,0,0,.03);
+    }
+    .icon-btn { width: 40px; padding: 0; display: grid; place-items: center; }
+    .glass-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 1.6rem; box-shadow: var(--shadow); backdrop-filter: blur(24px); }
+    .segmented { display: flex; gap: .25rem; padding: 4px; border-radius: 14px; background: var(--soft); }
+    .segmented-btn { flex: 1; box-shadow: none; background: transparent; border-color: transparent; }
+    .segmented-btn[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: 0 2px 10px rgba(0,0,0,.08); font-weight: 650; }
+    .form-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 1.25rem 0; padding: .65rem .8rem; border-radius: 13px; background: var(--soft); }
+    label { color: var(--muted); font-size: .84rem; font-weight: 600; }
+    select, input { background: transparent; border: 1px solid var(--border); border-radius: 9px; padding: .45rem .55rem; }
+    .timer-wrap { text-align: center; padding: .35rem 0 1.1rem; }
+    .timer-display { font-size: clamp(3.1rem, 12vw, 5.6rem); line-height: 1; font-weight: 200; letter-spacing: -.055em; font-variant-numeric: tabular-nums; }
+    .subtitle { min-height: 1.3rem; margin: .85rem 0 0; color: var(--muted); font-size: .93rem; }
+    .time-inputs { display: flex; justify-content: center; align-items: end; gap: .5rem; margin: .65rem 0 1.25rem; border: 0; padding: 0; }
+    .time-inputs[hidden] { display: none; }
+    .time-input { display: grid; gap: .35rem; text-align: center; }
+    .time-input input { width: 68px; height: 48px; text-align: center; font-size: 1.15rem; font-variant-numeric: tabular-nums; background: var(--soft); }
+    .time-separator { padding-bottom: .56rem; color: var(--muted); }
+    .control-row { flex-wrap: wrap; padding: 5px; border-radius: 28px; background: var(--soft); }
+    .btn { flex: 1 1 108px; min-height: 46px; font-weight: 650; box-shadow: none; }
+    .btn-primary { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+    .btn-danger { color: var(--danger); }
+    .section-heading { display: flex; justify-content: space-between; gap: .8rem; align-items: center; padding-bottom: .85rem; margin-bottom: .85rem; border-bottom: 1px solid var(--border); }
+    h2 { margin: 0; font-size: 1.07rem; }
+    .export-actions { flex-wrap: wrap; justify-content: flex-end; }
+    .btn-small { flex: 0 1 auto; min-height: 33px; padding: .35rem .72rem; font-size: .79rem; }
+    .table-scroll { overflow: auto; max-height: 330px; border-radius: 12px; }
+    table { width: 100%; min-width: 620px; border-collapse: collapse; text-align: left; }
+    th { position: sticky; top: 0; background: var(--card); color: var(--muted); font-size: .69rem; letter-spacing: .05em; text-transform: uppercase; z-index: 1; }
+    th, td { padding: .7rem; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+    td { font-size: .86rem; }
+    .empty { padding: 2.2rem 1rem; color: var(--muted); text-align: center; }
+    .tag-btn, .mean-btn { min-height: 0; padding: .2rem .52rem; border-radius: 7px; box-shadow: none; background: var(--soft); font-size: .8rem; }
+    .mean-btn.excluded { color: var(--muted); text-decoration: line-through; }
+    .badge { display: inline-block; padding: .2rem .48rem; background: var(--soft); border-radius: 7px; font-size: .76rem; font-weight: 600; }
+    footer { display: flex; justify-content: center; flex-wrap: wrap; gap: .65rem 1rem; color: var(--muted); font-size: .78rem; }
+    kbd { padding: .12rem .35rem; border: 1px solid var(--border); border-radius: 5px; background: var(--soft); color: var(--text); font-family: inherit; }
+    .toast { position: fixed; z-index: 100; bottom: 1.3rem; left: 50%; max-width: min(92vw, 520px); transform: translate(-50%, 120px); opacity: 0; background: var(--primary); color: var(--primary-text); padding: .7rem 1rem; border-radius: 14px; transition: .25s; text-align: center; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    .modal[hidden] { display: none; }
+    .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 1rem; background: rgba(0,0,0,.48); backdrop-filter: blur(12px); }
+    .modal-card { width: min(100%, 590px); max-height: 90vh; overflow: auto; }
+    .modal-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .6rem; margin-top: 1.15rem; }
+    .analytics-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .75rem; }
+    .metric { padding: .8rem; border: 1px solid var(--border); background: var(--soft); border-radius: 13px; }
+    .metric-label { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+    .metric-value { margin-top: .25rem; font-size: 1.05rem; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .choice-list { display: grid; gap: .65rem; margin-top: 1rem; }
+    .choice { display: flex; gap: .65rem; align-items: flex-start; padding: .75rem; border: 1px solid var(--border); border-radius: 12px; }
+    .choice label { color: var(--text); font-size: .88rem; font-weight: 500; }
+    .copy-area { width: 100%; min-height: 160px; resize: vertical; background: var(--soft); }
+    @media (max-width: 540px) {
+      body { padding: 1.1rem .7rem; } .glass-card { padding: 1.05rem; border-radius: 19px; }
+      header { align-items: flex-start; } .header-actions { flex-wrap: wrap; justify-content: flex-end; }
+      .form-row { align-items: stretch; flex-direction: column; } .form-row select { width: 100%; }
+      .section-heading { align-items: flex-start; flex-direction: column; } .export-actions { justify-content: flex-start; }
+      .btn { flex-basis: 44%; } .analytics-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 350px) {
+      h1 { font-size: 1.1rem; } .time-input input { width: 58px; } .time-inputs { gap: .28rem; }
+      .btn { flex-basis: 100%; } .header-actions { gap: .25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <img src="app_icon.jpg" alt="" width="36" height="36">
+        <h1 data-i18n="appName">Know Your Time</h1>
+      </div>
+      <div class="header-actions">
+        <label class="sr-only" for="languageSelect" data-i18n="language">Language</label>
+        <select id="languageSelect" aria-label="Language" data-i18n-aria="language">
+          <option value="en">English</option>
+          <option value="zh-HK">繁體中文</option>
+        </select>
+        <button class="icon-btn" id="historyBtn" type="button" aria-label="Practice history" title="Practice history" data-i18n-aria="historyTitle">◷</button>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="Use dark appearance" title="Use dark appearance">◐</button>
+      </div>
+    </header>
+
+    <main class="glass-card">
+      <div class="segmented" role="group" aria-label="Timer mode" data-i18n-aria="timerMode">
+        <button class="segmented-btn" id="countUpBtn" type="button" aria-pressed="true" data-i18n="countUp">Count Up</button>
+        <button class="segmented-btn" id="countDownBtn" type="button" aria-pressed="false" data-i18n="countDown">Count Down</button>
+      </div>
+      <div class="form-row">
+        <label for="tagPattern" data-i18n="tagPattern">Question label format</label>
+        <select id="tagPattern">
+          <option value="Q">Q1, Q2, Q3…</option>
+          <option value="MC">MC 1, MC 2, MC 3…</option>
+          <option value="Part A Q">Part A Q1, Part A Q2…</option>
+          <option value="Section B Q">Section B Q1, Section B Q2…</option>
+        </select>
+      </div>
+      <fieldset class="time-inputs" id="countdownInputs" hidden>
+        <legend class="sr-only" data-i18n="countdownDuration">Countdown duration</legend>
+        <div class="time-input"><input id="hoursInput" type="number" min="0" max="99" value="1" inputmode="numeric"><label for="hoursInput" data-i18n="hours">Hours</label></div>
+        <span class="time-separator" aria-hidden="true">:</span>
+        <div class="time-input"><input id="minutesInput" type="number" min="0" max="59" value="15" inputmode="numeric"><label for="minutesInput" data-i18n="minutes">Minutes</label></div>
+        <span class="time-separator" aria-hidden="true">:</span>
+        <div class="time-input"><input id="secondsInput" type="number" min="0" max="59" value="0" inputmode="numeric"><label for="secondsInput" data-i18n="seconds">Seconds</label></div>
+      </fieldset>
+      <div class="timer-wrap">
+        <output class="timer-display" id="timerDisplay" aria-label="Timer" data-i18n-aria="timerLabel">00:00:00.0</output>
+        <p class="subtitle" id="timerSubtitle" aria-live="polite">Ready for practice</p>
+      </div>
+      <div class="control-row">
+        <button class="btn btn-primary" id="startPauseBtn" type="button">Start</button>
+        <button class="btn" id="lapBtn" type="button" disabled data-i18n="nextQuestion">Next question</button>
+        <button class="btn" id="skipBtn" type="button" disabled data-i18n="skipQuestion">Skip question</button>
+        <button class="btn" id="finishBtn" type="button" disabled data-i18n="finishPractice">Finish practice</button>
+        <button class="btn btn-danger" id="resetBtn" type="button" data-i18n="reset">Reset</button>
+      </div>
+    </main>
+
+    <section class="glass-card" aria-labelledby="lapsHeading">
+      <div class="section-heading">
+        <h2 id="lapsHeading"><span data-i18n="questionLaps">Question laps</span> (<span id="questionCount">0</span>)</h2>
+        <div class="export-actions">
+          <button class="btn btn-small" id="analysisBtn" type="button" disabled data-i18n="analysis">Analysis</button>
+          <button class="btn btn-small" id="csvBtn" type="button" disabled data-i18n="exportCsv">Export CSV</button>
+          <button class="btn btn-small" id="tsvBtn" type="button" disabled data-i18n="copyTsv">Copy TSV</button>
+        </div>
+      </div>
+      <div class="table-scroll" tabindex="0" aria-label="Question laps table" data-i18n-aria="questionLapsTable">
+        <table>
+          <thead><tr>
+            <th data-i18n="tag">Tag</th><th data-i18n="duration">Duration</th><th data-i18n="elapsed">Elapsed</th>
+            <th data-i18n="pace">Pace</th><th data-i18n="mean">Mean</th>
+          </tr></thead>
+          <tbody id="lapsBody"></tbody>
+        </table>
+      </div>
+    </section>
+    <footer>
+      <span><kbd>Space</kbd> <span data-i18n="shortcutStart">Start / pause</span></span>
+      <span><kbd>Enter</kbd>/<kbd>L</kbd> <span data-i18n="shortcutNext">Next question</span></span>
+      <span><kbd>S</kbd> <span data-i18n="shortcutSkip">Skip question</span></span>
+      <span><kbd>R</kbd> <span data-i18n="shortcutReset">Reset</span></span>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="modal" id="finishModal" hidden role="dialog" aria-modal="true" aria-labelledby="finishTitle">
+    <div class="glass-card modal-card">
+      <div class="section-heading"><h2 id="finishTitle" data-i18n="finishTitle">Finish practice</h2></div>
+      <p id="finishMessage"></p>
+      <div class="choice-list" id="finishChoices">
+        <div class="choice"><input id="finalLapChoice" name="finalTime" type="radio" value="lap" checked><label for="finalLapChoice" data-i18n="finalLapChoice">Add the remaining time as one final question.</label></div>
+        <div class="choice"><input id="totalOnlyChoice" name="finalTime" type="radio" value="total"><label for="totalOnlyChoice" data-i18n="totalOnlyChoice">Keep it in the total only.</label></div>
+      </div>
+      <div class="modal-actions"><button class="btn" id="cancelFinishBtn" type="button" data-i18n="cancel">Cancel</button><button class="btn btn-primary" id="confirmFinishBtn" type="button" data-i18n="savePractice">Save practice</button></div>
+    </div>
+  </div>
+
+  <div class="modal" id="analysisModal" hidden role="dialog" aria-modal="true" aria-labelledby="analysisTitle">
+    <div class="glass-card modal-card">
+      <div class="section-heading"><h2 id="analysisTitle" data-i18n="analysisTitle">Session analysis</h2><button class="icon-btn modal-close" type="button" data-close="analysisModal" aria-label="Close">×</button></div>
+      <div class="analytics-grid" id="analyticsGrid"></div>
+      <div class="modal-actions"><button class="btn btn-primary" id="analysisCsvBtn" type="button" data-i18n="exportFullCsv">Export full CSV report</button></div>
+    </div>
+  </div>
+
+  <div class="modal" id="historyModal" hidden role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+    <div class="glass-card modal-card">
+      <div class="section-heading"><h2 id="historyTitle" data-i18n="historyTitle">Practice history</h2><button class="icon-btn modal-close" type="button" data-close="historyModal" aria-label="Close">×</button></div>
+      <div class="table-scroll" tabindex="0"><table><thead><tr><th data-i18n="date">Date</th><th data-i18n="mode">Mode</th><th data-i18n="questions">Questions</th><th data-i18n="totalTime">Total time</th><th data-i18n="action">Action</th></tr></thead><tbody id="historyBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="modal" id="copyModal" hidden role="dialog" aria-modal="true" aria-labelledby="copyTitle">
+    <div class="glass-card modal-card">
+      <div class="section-heading"><h2 id="copyTitle" data-i18n="copyManually">Copy manually</h2><button class="icon-btn modal-close" type="button" data-close="copyModal" aria-label="Close">×</button></div>
+      <p data-i18n="copyFallback">Your browser did not allow automatic copying. Select the text below and copy it.</p>
+      <textarea class="copy-area" id="copyTextarea" readonly></textarea>
+    </div>
+  </div>
+
+  <script id="timerCore">
+    (() => {
+      const STATES = Object.freeze({ IDLE: 'idle', RUNNING: 'running', PAUSED: 'paused', FINISHED: 'finished' });
+      const clone = (session, changes) => ({ ...session, ...changes });
+      const bounded = (value, lower, upper) => Math.min(upper, Math.max(lower, value));
+
+      function createSession({ id, mode = 'countup', countdownDurationMs = 0 } = {}) {
+        return { id: id || `session-${Date.now()}-${Math.random().toString(36).slice(2)}`, mode, state: STATES.IDLE,
+          countdownDurationMs: Math.max(0, countdownDurationMs), elapsedMs: 0, startedAtMs: null, laps: [],
+          lastLapElapsedMs: 0, nextLapNumber: 1, savedAtMs: null };
+      }
+      function currentElapsedMs(session, nowMs) {
+        const elapsed = session.state === STATES.RUNNING && Number.isFinite(session.startedAtMs)
+          ? session.elapsedMs + Math.max(0, nowMs - session.startedAtMs) : session.elapsedMs;
+        return session.mode === 'countdown' ? bounded(elapsed, 0, session.countdownDurationMs) : Math.max(0, elapsed);
+      }
+      function startSession(session, nowMs) {
+        if (session.state === STATES.FINISHED) return session;
+        const elapsed = currentElapsedMs(session, nowMs);
+        if (session.mode === 'countdown' && elapsed >= session.countdownDurationMs) return finishSession(clone(session, { elapsedMs: elapsed }), nowMs);
+        return clone(session, { state: STATES.RUNNING, elapsedMs: elapsed, startedAtMs: nowMs });
+      }
+      function pauseSession(session, nowMs) {
+        if (session.state !== STATES.RUNNING) return session;
+        return clone(session, { state: STATES.PAUSED, elapsedMs: currentElapsedMs(session, nowMs), startedAtMs: null });
+      }
+      function finishSession(session, nowMs, finishReason = 'manual') {
+        if (session.state === STATES.FINISHED) return session;
+        return clone(session, { state: STATES.FINISHED, elapsedMs: currentElapsedMs(session, nowMs), startedAtMs: null, finishReason });
+      }
+      function canRecordQuestion(session) { return session.state === STATES.RUNNING; }
+      function recordQuestion(session, { tag, isSkipped = false }, nowMs) {
+        if (!canRecordQuestion(session)) return { session, changed: false };
+        const elapsedMs = currentElapsedMs(session, nowMs);
+        if (session.mode === 'countdown' && elapsedMs >= session.countdownDurationMs) return { session: finishSession(session, nowMs, 'timeup'), changed: false };
+        const lap = { id: `lap-${session.nextLapNumber}`, number: session.nextLapNumber, tag: String(tag || '').trim() || `Q${session.nextLapNumber}`,
+          lapTimeMs: Math.max(0, elapsedMs - session.lastLapElapsedMs), totalTimeMs: elapsedMs,
+          isSkipped: Boolean(isSkipped), excludeFromMean: Boolean(isSkipped) };
+        return { session: clone(session, { elapsedMs, startedAtMs: nowMs, laps: [...session.laps, lap], lastLapElapsedMs: elapsedMs, nextLapNumber: session.nextLapNumber + 1 }), changed: true };
+      }
+      function addFinalLap(session, tag) {
+        if (session.state !== STATES.FINISHED) return { session, changed: false };
+        const unassigned = Math.max(0, session.elapsedMs - session.lastLapElapsedMs);
+        if (!unassigned) return { session, changed: false };
+        const lap = { id: `lap-${session.nextLapNumber}`, number: session.nextLapNumber, tag: String(tag || '').trim() || `Q${session.nextLapNumber}`,
+          lapTimeMs: unassigned, totalTimeMs: session.elapsedMs, isSkipped: false, excludeFromMean: false };
+        return { session: clone(session, { laps: [...session.laps, lap], lastLapElapsedMs: session.elapsedMs, nextLapNumber: session.nextLapNumber + 1 }), changed: true };
+      }
+      function setMeanIncluded(session, lapId, included) {
+        const lap = session.laps.find(item => item.id === lapId);
+        if (!lap || lap.isSkipped || lap.excludeFromMean === !included) return { session, changed: false };
+        return { session: clone(session, { laps: session.laps.map(item => item.id === lapId ? { ...item, excludeFromMean: !included } : item) }), changed: true };
+      }
+      function renameLap(session, lapId, tag) {
+        const safeTag = String(tag || '').trim();
+        if (!safeTag) return { session, changed: false };
+        return { session: clone(session, { laps: session.laps.map(item => item.id === lapId ? { ...item, tag: safeTag } : item) }), changed: true };
+      }
+      function markSessionSaved(session, nowMs) {
+        if (session.savedAtMs) return { session, didSave: false };
+        return { session: clone(session, { savedAtMs: nowMs }), didSave: true };
+      }
+      function getAnalytics(session, nowMs) {
+        const totalTimeMs = currentElapsedMs(session, nowMs);
+        const completed = session.laps.filter(lap => !lap.isSkipped);
+        const included = session.laps.filter(lap => !lap.excludeFromMean);
+        const meanTimeMs = included.length ? included.reduce((sum, lap) => sum + lap.lapTimeMs, 0) / included.length : 0;
+        const fastest = completed.reduce((best, lap) => !best || lap.lapTimeMs < best.lapTimeMs ? lap : best, null);
+        const slowest = completed.reduce((best, lap) => !best || lap.lapTimeMs > best.lapTimeMs ? lap : best, null);
+        return { totalTimeMs, unassignedTimeMs: Math.max(0, totalTimeMs - session.lastLapElapsedMs), totalQs: session.laps.length,
+          completedCount: completed.length, skippedCount: session.laps.filter(lap => lap.isSkipped).length, meanTimeMs, fastest, slowest };
+      }
+      function getHistoryAnalytics(item) {
+        const laps = Array.isArray(item?.laps) ? item.laps : [];
+        const stored = item?.analytics && typeof item.analytics === 'object' ? item.analytics : {};
+        const totalTimeMs = Number.isFinite(Number(item?.totalDurationMs)) ? Number(item.totalDurationMs) : Math.max(0, Number(stored.totalTimeMs) || 0);
+        const lastLapElapsedMs = laps.reduce((highest, lap) => Math.max(highest, Number(lap.totalTimeMs) || 0), 0);
+        const calculated = getAnalytics({ ...createSession({ mode: item?.mode || 'countup' }), state: STATES.PAUSED, elapsedMs: totalTimeMs, laps, lastLapElapsedMs }, 0);
+        return { ...calculated, ...stored, totalTimeMs, unassignedTimeMs: Math.max(0, totalTimeMs - lastLapElapsedMs) };
+      }
+      function restoreSession(session, nowMs) {
+        if (!session || !Object.values(STATES).includes(session.state)) return null;
+        const restored = { ...createSession({ id: session.id, mode: session.mode, countdownDurationMs: session.countdownDurationMs }), ...session,
+          laps: Array.isArray(session.laps) ? session.laps : [] };
+        return restored.mode === 'countdown' && restored.state === STATES.RUNNING && currentElapsedMs(restored, nowMs) >= restored.countdownDurationMs
+          ? finishSession(restored, nowMs, 'timeup') : restored;
+      }
+      function makeQuestionTag(pattern, number) {
+        const value = Math.max(1, Number(number) || 1);
+        return pattern === 'MC' ? `MC ${value}` : `${pattern || 'Q'}${value}`;
+      }
+      function csvField(value) {
+        let text = String(value ?? '');
+        if (/^[\s\u0000-\u001f]*[=+\-@]/.test(text)) text = `'${text}`;
+        return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      }
+      function tsvField(value) {
+        let text = String(value ?? '').replace(/[\t\r\n]+/g, ' ');
+        if (/^[\s\u0000-\u001f]*[=+\-@]/.test(text)) text = `'${text}`;
+        return text;
+      }
+      function createMonotonicClock(epochMs, originPerformanceMs) {
+        let lastValue = epochMs;
+        return performanceMs => {
+          const value = epochMs + Math.max(0, performanceMs - originPerformanceMs);
+          lastValue = Math.max(lastValue, value);
+          return lastValue;
+        };
+      }
+      globalThis.TimerCore = Object.freeze({ STATES, createSession, currentElapsedMs, startSession, pauseSession, finishSession,
+        canRecordQuestion, recordQuestion, addFinalLap, setMeanIncluded, renameLap, markSessionSaved, getAnalytics, restoreSession,
+        getHistoryAnalytics, makeQuestionTag, csvField, tsvField, createMonotonicClock });
+    })();
+  </script>
+  <script>
+    (() => {
+      const Core = globalThis.TimerCore;
+      const STORAGE = { HISTORY: 'know_your_time_history_v2', ACTIVE: 'know_your_time_active_v2', SETTINGS: 'know_your_time_settings_v2' };
+      const text = {
+        en: {
+          appName: 'Know Your Time', language: 'Language', timerMode: 'Timer mode', timerLabel: 'Timer {time}', questionLapsTable: 'Question laps table', useDark: 'Use dark appearance', useLight: 'Use light appearance', countUp: 'Count Up', countDown: 'Count Down', tagPattern: 'Question label format',
+          countdownDuration: 'Countdown duration', hours: 'Hours', minutes: 'Minutes', seconds: 'Seconds', ready: 'Ready for practice',
+          runningUp: 'Counting up…', runningDown: 'Counting down…', paused: 'Paused', timeUp: 'Time is up', finished: 'Practice finished', start: 'Start', pause: 'Pause', resume: 'Resume',
+          nextQuestion: 'Next question', skipQuestion: 'Skip question', finishPractice: 'Finish practice', savePractice: 'Save practice', cancel: 'Cancel', reset: 'Reset',
+          questionLaps: 'Question laps', analysis: 'Analysis', exportCsv: 'Export CSV', copyTsv: 'Copy TSV', tag: 'Tag', duration: 'Duration', elapsed: 'Elapsed',
+          pace: 'Pace', mean: 'Mean', shortcutStart: 'Start / pause', shortcutNext: 'Next question', shortcutSkip: 'Skip question', shortcutReset: 'Reset',
+          finishTitle: 'Finish practice', finalLapChoice: 'Add the remaining time as one final question.', totalOnlyChoice: 'Keep it in the total only.',
+          finishWithTime: 'There is {time} after the final recorded question. How should it be recorded?', finishNoTime: 'Save this finished practice session?',
+          analysisTitle: 'Session analysis', historyTitle: 'Practice history', copyManually: 'Copy manually', copyFallback: 'Your browser did not allow automatic copying. Select the text below and copy it.',
+          totalDuration: 'Total duration', questionsAttempted: 'Questions attempted', meanPace: 'Mean pace', fastest: 'Fastest question', slowest: 'Slowest question',
+          completionRate: 'Completion rate', exportFullCsv: 'Export full CSV report', date: 'Date', mode: 'Mode', questions: 'Questions', totalTime: 'Total time',
+          action: 'Action', export: 'Export', status: 'Status', seconds: 'Seconds', completed: 'Completed', yes: 'Yes', no: 'No', noLaps: 'No question laps yet. Start the timer, then record each question.', noHistory: 'No saved practice sessions yet.',
+          skipped: 'Skipped', excluded: 'Excluded', inMean: 'In mean', avgPace: 'Average pace', copied: 'Analysis copied. Paste it into your spreadsheet.',
+          downloaded: 'CSV report downloaded.', saved: 'Practice saved to this device.', storageUnavailable: 'Saving is unavailable in this browser. The timer can still be used.',
+          copyFailed: 'Automatic copying was unavailable; use the copy box instead.', validDuration: 'Enter a countdown duration greater than zero.',
+          resetConfirm: 'Reset this unfinished practice? Its unsaved timing will be lost.', modeConfirm: 'Finish or reset the current practice before changing timer mode.',
+          renamePrompt: 'Rename question label:', timeUpNote: 'Time is up. Choose how to record time after the last question.', backgroundNote: 'Browsers may delay alerts while a device is locked or a tab is suspended.',
+          restored: 'Your unfinished practice was restored.', countUpLabel: 'Count Up', countDownLabel: 'Count Down'
+        },
+        'zh-HK': {
+          appName: '掌握時間', language: '語言', timerMode: '計時模式', timerLabel: '計時器 {time}', questionLapsTable: '題目時間表', useDark: '使用深色外觀', useLight: '使用淺色外觀', countUp: '正數計時', countDown: '倒數計時', tagPattern: '題目標籤格式',
+          countdownDuration: '倒數時間', hours: '小時', minutes: '分鐘', seconds: '秒', ready: '準備開始練習',
+          runningUp: '正在正數計時…', runningDown: '正在倒數計時…', paused: '已暫停', timeUp: '時間到了', finished: '練習已完成', start: '開始', pause: '暫停', resume: '繼續',
+          nextQuestion: '下一題', skipQuestion: '跳過此題', finishPractice: '完成練習', savePractice: '儲存練習', cancel: '取消', reset: '重新開始',
+          questionLaps: '題目時間', analysis: '分析', exportCsv: '匯出 CSV', copyTsv: '複製 TSV', tag: '標籤', duration: '所用時間', elapsed: '累計時間',
+          pace: '速度', mean: '平均值', shortcutStart: '開始／暫停', shortcutNext: '下一題', shortcutSkip: '跳過此題', shortcutReset: '重新開始',
+          finishTitle: '完成練習', finalLapChoice: '把剩餘時間加入為最後一題。', totalOnlyChoice: '只保留在總時間內。',
+          finishWithTime: '最後一條已記錄題目後還有 {time}。應如何記錄？', finishNoTime: '儲存這次完成的練習？',
+          analysisTitle: '練習分析', historyTitle: '練習紀錄', copyManually: '手動複製', copyFallback: '瀏覽器未能自動複製。請選取以下文字再複製。',
+          totalDuration: '總時間', questionsAttempted: '已作答題目', meanPace: '平均速度', fastest: '最快題目', slowest: '最慢題目',
+          completionRate: '完成率', exportFullCsv: '匯出完整 CSV 報告', date: '日期', mode: '模式', questions: '題目', totalTime: '總時間',
+          action: '操作', export: '匯出', status: '狀態', seconds: '秒', completed: '已完成', yes: '是', no: '否', noLaps: '尚未記錄題目時間。開始計時後，逐題記錄。', noHistory: '暫時沒有已儲存的練習紀錄。',
+          skipped: '已跳過', excluded: '不計平均', inMean: '計入平均', avgPace: '平均速度', copied: '分析已複製，可貼到試算表。',
+          downloaded: 'CSV 報告已下載。', saved: '練習已儲存到此裝置。', storageUnavailable: '此瀏覽器無法儲存資料，但仍可使用計時器。',
+          copyFailed: '無法自動複製，請使用複製文字框。', validDuration: '請輸入大於零的倒數時間。',
+          resetConfirm: '要重新開始這次未儲存的練習嗎？計時資料將會遺失。', modeConfirm: '請先完成或重新開始目前練習，才可轉換計時模式。',
+          renamePrompt: '重新命名題目標籤：', timeUpNote: '時間到了。請選擇如何記錄最後一題後的時間。', backgroundNote: '裝置鎖定或分頁暫停時，瀏覽器可能延遲提示。',
+          restored: '已還原未完成的練習。', countUpLabel: '正數計時', countDownLabel: '倒數計時'
+        }
+      };
+      const $ = id => document.getElementById(id);
+      const el = {
+        language: $('languageSelect'), theme: $('themeBtn'), history: $('historyBtn'), up: $('countUpBtn'), down: $('countDownBtn'),
+        pattern: $('tagPattern'), countdown: $('countdownInputs'), hours: $('hoursInput'), minutes: $('minutesInput'), seconds: $('secondsInput'),
+        display: $('timerDisplay'), subtitle: $('timerSubtitle'), start: $('startPauseBtn'), lap: $('lapBtn'), skip: $('skipBtn'), finish: $('finishBtn'), reset: $('resetBtn'),
+        count: $('questionCount'), laps: $('lapsBody'), analysis: $('analysisBtn'), csv: $('csvBtn'), tsv: $('tsvBtn'), toast: $('toast'),
+        finishModal: $('finishModal'), finishMessage: $('finishMessage'), finishChoices: $('finishChoices'), finalLap: $('finalLapChoice'), totalOnly: $('totalOnlyChoice'), confirmFinish: $('confirmFinishBtn'), cancelFinish: $('cancelFinishBtn'),
+        analysisModal: $('analysisModal'), analytics: $('analyticsGrid'), analysisCsv: $('analysisCsvBtn'), historyModal: $('historyModal'), historyBody: $('historyBody'),
+        copyModal: $('copyModal'), copyTextarea: $('copyTextarea')
+      };
+      let settings = readJson(STORAGE.SETTINGS, {});
+      let language = settings.language === 'zh-HK' || (!settings.language && navigator.language.toLowerCase().startsWith('zh')) ? 'zh-HK' : 'en';
+      const monotonicNow = Core.createMonotonicClock(Date.now(), performance.now());
+      let session = restoreActive() || Core.createSession({ mode: 'countup' });
+      let animationFrame = null;
+      let activeModal = null;
+      let previousFocus = null;
+      let finishing = false;
+      let sessionBeforeFinish = null;
+      let toastTimer = null;
+
+      function t(key, values = {}) {
+        return (text[language][key] || text.en[key] || key).replace(/\{(\w+)\}/g, (_, name) => values[name] ?? '');
+      }
+      function now() { return monotonicNow(performance.now()); }
+      function formatTime(ms, tenths = true) {
+        const value = Math.max(0, Math.floor(ms));
+        const seconds = Math.floor(value / 1000), hours = Math.floor(seconds / 3600), minutes = Math.floor((seconds % 3600) / 60), remaining = seconds % 60;
+        const base = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remaining).padStart(2, '0')}`;
+        return tenths ? `${base}.${Math.floor((value % 1000) / 100)}` : base;
+      }
+      function readJson(key, fallback) {
+        try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : fallback; }
+        catch (_) { return fallback; }
+      }
+      function writeJson(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+        catch (_) { showToast(t('storageUnavailable')); return false; }
+      }
+      function removeStored(key) {
+        try { localStorage.removeItem(key); return true; }
+        catch (_) { showToast(t('storageUnavailable')); return false; }
+      }
+      function restoreActive() {
+        const restored = Core.restoreSession(readJson(STORAGE.ACTIVE, null), now());
+        if (!restored || restored.savedAtMs) return null;
+        queueMicrotask(() => showToast(t('restored')));
+        return restored;
+      }
+      function persistActive() {
+        if (session.state === Core.STATES.FINISHED && session.savedAtMs) return removeStored(STORAGE.ACTIVE);
+        return writeJson(STORAGE.ACTIVE, session);
+      }
+      function saveSettings() { writeJson(STORAGE.SETTINGS, settings); }
+      function showToast(message) {
+        el.toast.textContent = message;
+        el.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.toast.classList.remove('show'), 3000);
+      }
+      function setTextContent() {
+        document.documentElement.lang = language === 'zh-HK' ? 'zh-Hant-HK' : 'en';
+        document.title = t('appName');
+        document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); });
+        document.querySelectorAll('[data-i18n-aria]').forEach(node => { node.setAttribute('aria-label', t(node.dataset.i18nAria)); });
+        el.language.value = language;
+        const themeText = t(document.body.classList.contains('dark-mode') ? 'useLight' : 'useDark');
+        el.theme.setAttribute('aria-label', themeText); el.theme.title = themeText;
+        el.history.title = t('historyTitle');
+        document.querySelectorAll('.modal-close').forEach(button => button.setAttribute('aria-label', language === 'zh-HK' ? '關閉' : 'Close'));
+      }
+      function elapsed() { return Core.currentElapsedMs(session, now()); }
+      function isCountDownFinished() { return session.mode === 'countdown' && elapsed() >= session.countdownDurationMs; }
+      function currentDisplayMs() { return session.mode === 'countdown' ? Math.max(0, session.countdownDurationMs - elapsed()) : elapsed(); }
+      function syncTimerText() {
+        el.display.value = formatTime(currentDisplayMs());
+        el.display.textContent = formatTime(currentDisplayMs());
+        el.display.setAttribute('aria-label', t('timerLabel', { time: formatTime(currentDisplayMs(), false) }));
+      }
+      function render() {
+        const isRunning = session.state === Core.STATES.RUNNING;
+        const isFinished = session.state === Core.STATES.FINISHED;
+        const hasPractice = session.laps.length > 0 || elapsed() > 0;
+        el.countdown.hidden = session.mode !== 'countdown';
+        el.up.setAttribute('aria-pressed', String(session.mode === 'countup'));
+        el.down.setAttribute('aria-pressed', String(session.mode === 'countdown'));
+        el.up.disabled = isRunning; el.down.disabled = isRunning;
+        [el.hours, el.minutes, el.seconds, el.pattern].forEach(input => { input.disabled = isRunning || isFinished; });
+        el.start.disabled = isFinished;
+        el.start.textContent = isRunning ? t('pause') : session.state === Core.STATES.PAUSED ? t('resume') : t('start');
+        el.lap.disabled = !isRunning; el.skip.disabled = !isRunning;
+        el.finish.disabled = !hasPractice || (isFinished && Boolean(session.savedAtMs));
+        el.finish.textContent = isFinished && !session.savedAtMs ? t('savePractice') : t('finishPractice');
+        el.analysis.disabled = !hasPractice; el.csv.disabled = !hasPractice; el.tsv.disabled = !hasPractice;
+        el.subtitle.textContent = isFinished ? (session.finishReason === 'timeup' ? t('timeUp') : t('finished')) : isRunning ? (session.mode === 'countup' ? t('runningUp') : t('runningDown')) : session.state === Core.STATES.PAUSED ? t('paused') : t('ready');
+        syncTimerText();
+        renderLaps();
+        if (isRunning) scheduleTick(); else cancelAnimationFrame(animationFrame);
+      }
+      function createCell(row, value) { const cell = document.createElement('td'); cell.textContent = value; row.append(cell); return cell; }
+      function renderLaps() {
+        el.count.textContent = String(session.laps.length);
+        el.laps.replaceChildren();
+        if (!session.laps.length) {
+          const row = document.createElement('tr'), cell = document.createElement('td');
+          cell.colSpan = 5; cell.className = 'empty'; cell.textContent = t('noLaps'); row.append(cell); el.laps.append(row); return;
+        }
+        const analytics = Core.getAnalytics(session, now());
+        [...session.laps].reverse().forEach(lap => {
+          const row = document.createElement('tr');
+          const tagCell = document.createElement('td'), tagButton = document.createElement('button');
+          tagButton.type = 'button'; tagButton.className = 'tag-btn'; tagButton.textContent = lap.tag; tagButton.setAttribute('aria-label', `${t('renamePrompt')} ${lap.tag}`);
+          tagButton.addEventListener('click', () => {
+            const renamed = window.prompt(t('renamePrompt'), lap.tag);
+            if (renamed !== null) { session = Core.renameLap(session, lap.id, renamed).session; persistActive(); render(); }
+          });
+          tagCell.append(tagButton); row.append(tagCell);
+          createCell(row, formatTime(lap.lapTimeMs, false)); createCell(row, formatTime(lap.totalTimeMs, false));
+          const paceCell = document.createElement('td');
+          const badge = document.createElement('span'); badge.className = 'badge';
+          if (lap.excludeFromMean) badge.textContent = lap.isSkipped ? t('skipped') : t('excluded');
+          else if (!analytics.meanTimeMs || Math.abs(lap.lapTimeMs - analytics.meanTimeMs) < 1500) badge.textContent = t('avgPace');
+          else { const diff = ((lap.lapTimeMs - analytics.meanTimeMs) / 1000).toFixed(1); badge.textContent = `${Number(diff) > 0 ? '+' : ''}${diff}s`; }
+          paceCell.append(badge); row.append(paceCell);
+          const meanCell = document.createElement('td'), meanButton = document.createElement('button');
+          meanButton.type = 'button'; meanButton.className = `mean-btn${lap.excludeFromMean ? ' excluded' : ''}`; meanButton.textContent = lap.excludeFromMean ? t('excluded') : t('inMean');
+          if (lap.isSkipped) { meanButton.disabled = true; meanButton.title = t('skipped'); }
+          else meanButton.addEventListener('click', () => {
+            session = Core.setMeanIncluded(session, lap.id, lap.excludeFromMean).session; persistActive(); render();
+          });
+          meanCell.append(meanButton); row.append(meanCell); el.laps.append(row);
+        });
+      }
+      function scheduleTick() {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = requestAnimationFrame(() => {
+          if (session.state !== Core.STATES.RUNNING) return;
+          if (isCountDownFinished()) { finishForTimeUp(); return; }
+          syncTimerText(); scheduleTick();
+        });
+      }
+      let audioContext = null;
+      function unlockAudio() {
+        try {
+          audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+          if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+        } catch (_) { /* A visual alert is always available. */ }
+      }
+      function beep() {
+        try {
+          if (!audioContext || audioContext.state !== 'running') return;
+          const oscillator = audioContext.createOscillator(), gain = audioContext.createGain();
+          oscillator.frequency.value = 880; gain.gain.value = .18; oscillator.connect(gain); gain.connect(audioContext.destination);
+          oscillator.start(); oscillator.stop(audioContext.currentTime + .45);
+        } catch (_) { /* A visual alert is always available. */ }
+      }
+      function startOrPause() {
+        if (session.state === Core.STATES.RUNNING) session = Core.pauseSession(session, now());
+        else {
+          if (session.mode === 'countdown' && session.state === Core.STATES.IDLE) {
+            const duration = countdownDuration();
+            if (!duration) { showToast(t('validDuration')); return; }
+            session = Core.createSession({ mode: 'countdown', countdownDurationMs: duration });
+          }
+          unlockAudio(); session = Core.startSession(session, now());
+        }
+        persistActive(); render();
+      }
+      function countdownDuration() {
+        const hour = boundedInteger(el.hours.value, 0, 99), minute = boundedInteger(el.minutes.value, 0, 59), second = boundedInteger(el.seconds.value, 0, 59);
+        return (hour * 3600 + minute * 60 + second) * 1000;
+      }
+      function boundedInteger(value, min, max) { return Math.min(max, Math.max(min, Number.parseInt(value, 10) || 0)); }
+      function record(isSkipped) {
+        const tag = Core.makeQuestionTag(el.pattern.value, session.nextLapNumber);
+        const result = Core.recordQuestion(session, { tag, isSkipped }, now());
+        session = result.session;
+        if (result.changed) { persistActive(); showToast(`${isSkipped ? t('skipped') : t('nextQuestion')}: ${tag}`); render(); }
+        else if (session.state === Core.STATES.FINISHED && session.finishReason === 'timeup') finishForTimeUp();
+      }
+      function finishForTimeUp() {
+        session = Core.finishSession(session, now(), 'timeup'); persistActive(); beep(); render();
+        showToast(t('timeUpNote')); beginFinishFlow();
+      }
+      function beginFinishFlow() {
+        sessionBeforeFinish = null;
+        if (session.state !== Core.STATES.FINISHED) {
+          sessionBeforeFinish = session;
+          session = Core.finishSession(session, now());
+        }
+        const analytics = Core.getAnalytics(session, now());
+        const hasUnassigned = analytics.unassignedTimeMs > 0 && session.laps.length > 0;
+        el.finishMessage.textContent = hasUnassigned ? t('finishWithTime', { time: formatTime(analytics.unassignedTimeMs, false) }) : t('finishNoTime');
+        el.finishChoices.hidden = !hasUnassigned;
+        el.finalLap.checked = true;
+        openModal('finishModal', el.confirmFinish);
+        persistActive(); render();
+      }
+      function completeFinish() {
+        if (finishing || session.savedAtMs) return;
+        finishing = true;
+        if (!el.finishChoices.hidden && el.finalLap.checked) {
+          session = Core.addFinalLap(session, Core.makeQuestionTag(el.pattern.value, session.nextLapNumber)).session;
+        }
+        const snapshot = buildHistoryItem(session);
+        const history = readHistory();
+        if (!writeJson(STORAGE.HISTORY, [snapshot, ...history].slice(0, 30))) { finishing = false; return; }
+        session = Core.markSessionSaved(session, now()).session;
+        sessionBeforeFinish = null; persistActive(); closeModal('finishModal'); showToast(t('saved')); finishing = false; render();
+      }
+      function cancelFinish() {
+        if (sessionBeforeFinish && session.finishReason === 'manual') session = sessionBeforeFinish;
+        sessionBeforeFinish = null; persistActive(); closeModal('finishModal'); render();
+      }
+      function resetSession() {
+        if ((session.laps.length || elapsed() > 0) && !session.savedAtMs && !window.confirm(t('resetConfirm'))) return;
+        const mode = session.mode; session = Core.createSession({ mode, countdownDurationMs: mode === 'countdown' ? countdownDuration() : 0 });
+        removeStored(STORAGE.ACTIVE); render();
+      }
+      function changeMode(mode) {
+        if (mode === session.mode) return;
+        if (session.state !== Core.STATES.IDLE) { showToast(t('modeConfirm')); return; }
+        session = Core.createSession({ mode, countdownDurationMs: mode === 'countdown' ? countdownDuration() : 0 }); removeStored(STORAGE.ACTIVE); render();
+      }
+      function readHistory() { const history = readJson(STORAGE.HISTORY, []); return Array.isArray(history) ? history : []; }
+      function buildHistoryItem(value) {
+        const data = value.state ? Core.getAnalytics(value, now()) : Core.getHistoryAnalytics(value);
+        return { id: value.id, date: new Date().toISOString(), mode: value.mode, totalDurationMs: data.totalTimeMs, analytics: data, laps: value.laps };
+      }
+      function renderAnalytics(value = session) {
+        const data = Core.getAnalytics(value, now());
+        const metrics = [
+          [t('totalDuration'), formatTime(data.totalTimeMs, false)],
+          [t('questionsAttempted'), `${data.completedCount} / ${data.totalQs} (${data.skippedCount} ${t('skipped')})`],
+          [t('meanPace'), formatTime(data.meanTimeMs, false)],
+          [t('fastest'), data.fastest ? `${data.fastest.tag} (${formatTime(data.fastest.lapTimeMs, false)})` : '—'],
+          [t('slowest'), data.slowest ? `${data.slowest.tag} (${formatTime(data.slowest.lapTimeMs, false)})` : '—'],
+          [t('completionRate'), data.totalQs ? `${Math.round(data.completedCount / data.totalQs * 100)}%` : '—']
+        ];
+        el.analytics.replaceChildren(...metrics.map(([label, valueText]) => {
+          const card = document.createElement('div'), labelNode = document.createElement('div'), valueNode = document.createElement('div');
+          card.className = 'metric'; labelNode.className = 'metric-label'; valueNode.className = 'metric-value'; labelNode.textContent = label; valueNode.textContent = valueText; card.append(labelNode, valueNode); return card;
+        }));
+      }
+      function renderHistory() {
+        el.historyBody.replaceChildren();
+        const history = readHistory();
+        if (!history.length) { const row = document.createElement('tr'), cell = document.createElement('td'); cell.className = 'empty'; cell.colSpan = 5; cell.textContent = t('noHistory'); row.append(cell); el.historyBody.append(row); return; }
+        history.forEach(item => {
+          const row = document.createElement('tr');
+          createCell(row, new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(item.date)));
+          createCell(row, item.mode === 'countdown' ? t('countDownLabel') : t('countUpLabel'));
+          createCell(row, `${item.analytics?.completedCount ?? item.laps?.filter(lap => !lap.isSkipped).length ?? 0} / ${item.analytics?.totalQs ?? item.laps?.length ?? 0}`);
+          createCell(row, formatTime(item.totalDurationMs ?? 0, false));
+          const cell = document.createElement('td'), exportButton = document.createElement('button');
+          exportButton.type = 'button'; exportButton.className = 'btn btn-small'; exportButton.textContent = t('export'); exportButton.addEventListener('click', () => downloadCsv(item)); cell.append(exportButton); row.append(cell); el.historyBody.append(row);
+        });
+      }
+      function csvFor(value) {
+        const data = value.state ? Core.getAnalytics(value, now()) : Core.getHistoryAnalytics(value), rows = [];
+        const add = (...cells) => rows.push(cells.map(Core.csvField).join(','));
+        add('=== HKDSE PRACTICE PAPER ANALYSIS SUMMARY ==='); add(t('date'), new Date(value.date || Date.now()).toLocaleString(language));
+        add(t('mode'), value.mode === 'countdown' ? t('countDownLabel') : t('countUpLabel')); add(t('totalDuration'), formatTime(data.totalTimeMs, false));
+        add(t('questions'), data.totalQs); add(t('meanPace'), formatTime(data.meanTimeMs, false)); add('');
+        add('=== QUESTION SPLIT DETAILS ==='); add(t('tag'), t('status'), t('duration'), t('seconds'), t('elapsed'), t('mean'));
+        (value.laps || []).forEach(lap => add(lap.tag, lap.isSkipped ? t('skipped') : t('completed'), formatTime(lap.lapTimeMs, false), (lap.lapTimeMs / 1000).toFixed(1), formatTime(lap.totalTimeMs, false), lap.excludeFromMean ? t('no') : t('yes')));
+        return rows.join('\n');
+      }
+      function tsvFor(value) {
+        const data = value.state ? Core.getAnalytics(value, now()) : Core.getHistoryAnalytics(value), rows = [[t('totalDuration'), formatTime(data.totalTimeMs, false)], [t('meanPace'), formatTime(data.meanTimeMs, false)], []];
+        rows.push([t('tag'), t('status'), t('duration'), t('elapsed'), t('mean')]);
+        (value.laps || []).forEach(lap => rows.push([lap.tag, lap.isSkipped ? t('skipped') : t('completed'), formatTime(lap.lapTimeMs, false), formatTime(lap.totalTimeMs, false), lap.excludeFromMean ? t('no') : t('yes')]));
+        return rows.map(row => row.map(Core.tsvField).join('\t')).join('\n');
+      }
+      function downloadCsv(value) {
+        const url = URL.createObjectURL(new Blob([csvFor(value)], { type: 'text/csv;charset=utf-8' }));
+        const link = document.createElement('a'); link.href = url; link.download = `know-your-time-${new Date().toISOString().slice(0, 10)}.csv`; link.click(); URL.revokeObjectURL(url); showToast(t('downloaded'));
+      }
+      async function copyTsv() {
+        const content = tsvFor(session);
+        try {
+          if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+          await navigator.clipboard.writeText(content); showToast(t('copied'));
+        } catch (_) {
+          el.copyTextarea.value = content; openModal('copyModal', el.copyTextarea); el.copyTextarea.select(); showToast(t('copyFailed'));
+        }
+      }
+      function focusable(modal) { return [...modal.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]; }
+      function openModal(id, focusTarget) {
+        const modal = $(id); previousFocus = document.activeElement; activeModal = modal; modal.hidden = false;
+        queueMicrotask(() => (focusTarget || focusable(modal)[0])?.focus());
+      }
+      function closeModal(id) {
+        const modal = $(id); modal.hidden = true; activeModal = null; previousFocus?.focus?.();
+      }
+      function handleKeydown(event) {
+        if (activeModal) {
+          if (event.key === 'Escape') { cancelFinishIfNeeded(); return; }
+          if (event.key === 'Tab') {
+            const items = focusable(activeModal); if (!items.length) return;
+            const first = items[0], last = items.at(-1);
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+          }
+          return;
+        }
+        if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(document.activeElement?.tagName)) return;
+        if (event.code === 'Space') { event.preventDefault(); startOrPause(); }
+        else if ((event.code === 'Enter' || event.code === 'KeyL') && session.state === Core.STATES.RUNNING) { event.preventDefault(); record(false); }
+        else if (event.code === 'KeyS' && session.state === Core.STATES.RUNNING) { event.preventDefault(); record(true); }
+        else if (event.code === 'KeyR') { event.preventDefault(); resetSession(); }
+      }
+      function cancelFinishIfNeeded() { activeModal?.id === 'finishModal' ? cancelFinish() : activeModal && closeModal(activeModal.id); }
+      el.start.addEventListener('click', startOrPause); el.lap.addEventListener('click', () => record(false)); el.skip.addEventListener('click', () => record(true));
+      el.finish.addEventListener('click', beginFinishFlow); el.confirmFinish.addEventListener('click', completeFinish); el.cancelFinish.addEventListener('click', cancelFinish); el.reset.addEventListener('click', resetSession);
+      el.up.addEventListener('click', () => changeMode('countup')); el.down.addEventListener('click', () => changeMode('countdown'));
+      el.analysis.addEventListener('click', () => { renderAnalytics(); openModal('analysisModal'); }); el.analysisCsv.addEventListener('click', () => downloadCsv(session));
+      el.csv.addEventListener('click', () => downloadCsv(session)); el.tsv.addEventListener('click', copyTsv);
+      el.history.addEventListener('click', () => { renderHistory(); openModal('historyModal'); });
+      document.querySelectorAll('.modal-close').forEach(button => button.addEventListener('click', () => closeModal(button.dataset.close)));
+      el.language.addEventListener('change', () => { language = el.language.value; settings.language = language; saveSettings(); setTextContent(); render(); });
+      el.theme.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); settings.darkMode = document.body.classList.contains('dark-mode'); saveSettings(); setTextContent(); });
+      window.addEventListener('keydown', handleKeydown);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && session.state === Core.STATES.RUNNING && isCountDownFinished()) finishForTimeUp(); });
+      window.addEventListener('beforeunload', persistActive);
+      if (settings.darkMode) document.body.classList.add('dark-mode');
+      setTextContent(); render();
+      if (session.state === Core.STATES.FINISHED && !session.savedAtMs && session.mode === 'countdown') queueMicrotask(finishForTimeUp);
+      console.info(t('backgroundNote'));
+    })();
+  </script>
+</body>
+</html>
