@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HKDSE Past Paper Timer</title>
+  <style>
+    :root {
+      --bg-main: #fbfbfd;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --text-main: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-muted: #86868b;
+      --btn-primary-bg: #1d1d1f;
+      --btn-primary-text: #ffffff;
+      --btn-secondary-bg: rgba(0, 0, 0, 0.04);
+      --btn-secondary-text: #1d1d1f;
+      --segmented-bg: rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.03);
+      --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.06);
+      --table-border: rgba(0, 0, 0, 0.06);
+      --table-hover: rgba(0, 0, 0, 0.02);
+      --badge-bg: rgba(0, 0, 0, 0.06);
+      --badge-text: #1d1d1f;
+    }
+
+    body.dark-mode {
+      --bg-main: #000000;
+      --card-bg: rgba(22, 22, 24, 0.8);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f5f5f7;
+      --text-secondary: #86868b;
+      --text-muted: #6e6e73;
+      --btn-primary-bg: #f5f5f7;
+      --btn-primary-text: #000000;
+      --btn-secondary-bg: rgba(255, 255, 255, 0.08);
+      --btn-secondary-text: #f5f5f7;
+      --segmented-bg: rgba(255, 255, 255, 0.08);
+      --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 12px 40px rgba(0, 0, 0, 0.6);
+      --table-border: rgba(255, 255, 255, 0.08);
+      --table-hover: rgba(255, 255, 255, 0.04);
+      --badge-bg: rgba(255, 255, 255, 0.12);
+      --badge-text: #f5f5f7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 0.25rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--text-main);
+      color: var(--bg-main);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .icon-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Apple Glass Card */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+    }
+
+    /* Segmented Mode Switcher */
+    .segmented-control {
+      display: flex;
+      background: var(--segmented-bg);
+      padding: 4px;
+      border-radius: 14px;
+      margin-bottom: 1.5rem;
+    }
+
+    .segmented-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      font-weight: 500;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .segmented-btn.active {
+      color: var(--text-main);
+      font-weight: 600;
+      background: var(--card-bg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Tag Toolbar */
+    .tag-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--segmented-bg);
+      padding: 0.5rem 0.9rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      font-size: 0.82rem;
+    }
+
+    .tag-toolbar label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .tag-select {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+      border-radius: 6px;
+    }
+
+    /* Timer Display */
+    .timer-display-container {
+      text-align: center;
+      margin: 1.25rem 0 2rem;
+    }
+
+    .timer-display {
+      font-size: 5rem;
+      font-weight: 200;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .timer-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+      font-weight: 400;
+    }
+
+    /* Countdown Time Inputs */
+    .timer-inputs {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .input-group input {
+      width: 64px;
+      height: 48px;
+      background: var(--segmented-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      outline: none;
+    }
+
+    .input-group input:focus {
+      border-color: var(--text-main);
+    }
+
+    .input-group label {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .time-separator {
+      font-size: 1.4rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+      margin-top: -1rem;
+    }
+
+    /* Floating Pill Control Dock */
+    .control-pill-bar {
+      display: flex;
+      background: var(--segmented-bg);
+      padding: 5px;
+      border-radius: 28px;
+      gap: 0.4rem;
+    }
+
+    .btn {
+      flex: 1;
+      height: 46px;
+      border-radius: 24px;
+      border: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-primary {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+    }
+
+    .btn-secondary {
+      background: var(--btn-secondary-bg);
+      color: var(--btn-secondary-text);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(128, 128, 128, 0.15);
+    }
+
+    /* Question Laps Section */
+    .laps-card {
+      padding: 1.5rem;
+    }
+
+    .laps-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--table-border);
+    }
+
+    .laps-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .btn-sm {
+      height: 32px;
+      padding: 0 0.85rem;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+
+    .table-container {
+      max-height: 300px;
+      overflow-y: auto;
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      padding: 0.6rem 0.75rem;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      z-index: 2;
+    }
+
+    td {
+      padding: 0.7rem 0.75rem;
+      font-size: 0.86rem;
+      border-top: 1px solid var(--table-border);
+      font-variant-numeric: tabular-nums;
+    }
+
+    tbody tr:hover {
+      background: var(--table-hover);
+    }
+
+    /* Monochrome Badges & Controls */
+    .tag-editable {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--segmented-bg);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .tag-editable:hover {
+      background: rgba(128, 128, 128, 0.2);
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+    }
+
+    .mean-toggle-btn {
+      border: 1px solid var(--card-border);
+      background: transparent;
+      color: var(--text-main);
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .mean-excluded {
+      color: var(--text-muted);
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+    }
+
+    /* Shortcuts Footer */
+    .shortcuts-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      padding: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    kbd {
+      background: var(--segmented-bg);
+      border: 1px solid var(--card-border);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      padding: 0.65rem 1.4rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Analytics Summary Cards Grid */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .analytics-item {
+      background: var(--segmented-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+    }
+
+    .analytics-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 0.3rem;
+    }
+
+    .analytics-value {
+      font-size: 1.15rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* History & Analytics Modal Drawer */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 100;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      width: 90%;
+      max-width: 580px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+  </style>
+  <link rel="icon" href="app_icon.jpg">
+  <link rel="apple-touch-icon" href="app_icon.jpg">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <img src="app_icon.jpg" alt="HKDSE Timer Icon" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; box-shadow: var(--shadow-sm);">
+        <h1>HKDSE Timer</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="historyBtn" title="Past History">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
+        <button class="icon-btn" id="themeToggleBtn" title="Toggle Theme">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Timer Card -->
+    <main class="glass-card">
+      <!-- Mode Switcher -->
+      <div class="segmented-control">
+        <button class="segmented-btn active" id="modeCountUpBtn">Count Up (Stopwatch)</button>
+        <button class="segmented-btn" id="modeCountDownBtn">Count Down (Timer)</button>
+      </div>
+
+      <!-- Tag Format Selector -->
+      <div class="tag-toolbar">
+        <label for="tagPatternSelect">Question Tag Format:</label>
+        <select id="tagPatternSelect" class="tag-select">
+          <option value="Q">Q1, Q2, Q3...</option>
+          <option value="MC">MC 1, MC 2, MC 3...</option>
+          <option value="Part A Q">Part A Q1, Part A Q2...</option>
+          <option value="Section B Q">Section B Q1, Section B Q2...</option>
+        </select>
+      </div>
+
+      <!-- Countdown Inputs (Hidden in Count-Up mode) -->
+      <div class="timer-inputs" id="countdownInputs" style="display: none;">
+        <div class="input-group">
+          <input type="number" id="inputHours" min="0" max="99" value="1">
+          <label>Hours</label>
+        </div>
+        <span class="time-separator">:</span>
+        <div class="input-group">
+          <input type="number" id="inputMinutes" min="0" max="59" value="15">
+          <label>Mins</label>
+        </div>
+        <span class="time-separator">:</span>
+        <div class="input-group">
+          <input type="number" id="inputSeconds" min="0" max="59" value="0">
+          <label>Secs</label>
+        </div>
+      </div>
+
+      <!-- Main Timer Clock Readout -->
+      <div class="timer-display-container">
+        <div class="timer-display" id="timerDisplay">00:00:00.0</div>
+        <div class="timer-subtitle" id="timerSubtitle">Ready for practice</div>
+      </div>
+
+      <!-- Floating Pill Control Dock -->
+      <div class="control-pill-bar">
+        <button class="btn btn-primary" id="startPauseBtn">Start</button>
+        <button class="btn btn-secondary" id="lapBtn" disabled>Next Q</button>
+        <button class="btn btn-secondary" id="skipBtn" disabled>Skip Q</button>
+        <button class="btn btn-secondary" id="resetBtn">Reset</button>
+      </div>
+    </main>
+
+    <!-- Question Laps & Analysis Card -->
+    <section class="glass-card laps-card">
+      <div class="laps-header">
+        <div class="laps-title">Question Laps (<span id="questionCount">0</span>)</div>
+        <div class="export-actions">
+          <button class="btn btn-secondary btn-sm" id="analyticsBtn" disabled>Analysis</button>
+          <button class="btn btn-secondary btn-sm" id="exportCsvBtn" disabled>Export CSV</button>
+          <button class="btn btn-secondary btn-sm" id="copyTsvBtn" disabled>Copy TSV</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tag</th>
+              <th>Duration</th>
+              <th>Elapsed</th>
+              <th>Pace vs Avg</th>
+              <th>Mean Calculation</th>
+            </tr>
+          </thead>
+          <tbody id="lapsTableBody">
+            <tr>
+              <td colspan="5" class="empty-state">No question laps recorded yet. Press "Next Q" or "Skip Q" during practice.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Shortcuts Footer -->
+    <footer class="shortcuts-bar">
+      <div class="shortcut-item"><kbd>Space</kbd> Start / Pause</div>
+      <div class="shortcut-item"><kbd>Enter</kbd> / <kbd>L</kbd> Next Q</div>
+      <div class="shortcut-item"><kbd>S</kbd> Skip Q</div>
+      <div class="shortcut-item"><kbd>R</kbd> Reset</div>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">Copied to Clipboard!</div>
+
+  <!-- Detailed Analytics Summary Modal -->
+  <div class="modal-overlay" id="analyticsModal">
+    <div class="glass-card modal-content">
+      <div class="laps-header">
+        <div class="laps-title">Session Performance Analysis</div>
+        <button class="icon-btn" id="closeAnalyticsBtn" style="width: 32px; height: 32px;">✕</button>
+      </div>
+      
+      <div class="analytics-grid" id="analyticsGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="export-actions" style="justify-content: flex-end;">
+        <button class="btn btn-primary btn-sm" id="downloadAnalyticsCsvBtn">Export Full CSV Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice History Modal -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="glass-card modal-content">
+      <div class="laps-header">
+        <div class="laps-title">Past Practice History</div>
+        <button class="icon-btn" id="closeHistoryBtn" style="width: 32px; height: 32px;">✕</button>
+      </div>
+      <div class="table-container" style="max-height: 380px;">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Mode</th>
+              <th>Questions</th>
+              <th>Total Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td colspan="5" class="empty-state">No practice history saved yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- State Variables ---
+    let mode = 'countup'; // 'countup' | 'countdown'
+    let state = 'idle';   // 'idle' | 'running' | 'paused'
+    
+    let startTime = 0;
+    let elapsedTime = 0;
+    let timerInterval = null;
+
+    let countdownInitialMs = 0;
+    let countdownRemainingMs = 0;
+
+    let laps = []; // [{ id: 1, tag: 'Q1', lapTimeMs: 12000, totalTimeMs: 12000, isSkipped: false, excludeFromMean: false }]
+    let lastLapTotalTimeMs = 0;
+
+    // --- DOM Elements ---
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerSubtitle = document.getElementById('timerSubtitle');
+    const startPauseBtn = document.getElementById('startPauseBtn');
+    const lapBtn = document.getElementById('lapBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    
+    const modeCountUpBtn = document.getElementById('modeCountUpBtn');
+    const modeCountDownBtn = document.getElementById('modeCountDownBtn');
+    const tagPatternSelect = document.getElementById('tagPatternSelect');
+    const countdownInputs = document.getElementById('countdownInputs');
+
+    const inputHours = document.getElementById('inputHours');
+    const inputMinutes = document.getElementById('inputMinutes');
+    const inputSeconds = document.getElementById('inputSeconds');
+
+    const lapsTableBody = document.getElementById('lapsTableBody');
+    const questionCountSpan = document.getElementById('questionCount');
+    const analyticsBtn = document.getElementById('analyticsBtn');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const copyTsvBtn = document.getElementById('copyTsvBtn');
+
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const toast = document.getElementById('toast');
+
+    const analyticsModal = document.getElementById('analyticsModal');
+    const closeAnalyticsBtn = document.getElementById('closeAnalyticsBtn');
+    const analyticsGrid = document.getElementById('analyticsGrid');
+    const downloadAnalyticsCsvBtn = document.getElementById('downloadAnalyticsCsvBtn');
+
+    const historyBtn = document.getElementById('historyBtn');
+    const historyModal = document.getElementById('historyModal');
+    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+    const historyTableBody = document.getElementById('historyTableBody');
+
+    // --- Audio Context for Alarm ---
+    function playBeep() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        gain.gain.value = 0.2;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      } catch (e) {
+        console.log('Audio alert blocked or not supported');
+      }
+    }
+
+    // --- Time Formatting Helper ---
+    function formatTime(ms, includeTenths = true) {
+      if (ms < 0) ms = 0;
+      const totalSeconds = Math.floor(ms / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const tenths = Math.floor((ms % 1000) / 100);
+
+      const hh = String(hours).padStart(2, '0');
+      const mm = String(minutes).padStart(2, '0');
+      const ss = String(seconds).padStart(2, '0');
+
+      if (includeTenths) {
+        return `${hh}:${mm}:${ss}.${tenths}`;
+      }
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    // --- Render Timer Display ---
+    function updateDisplay() {
+      if (mode === 'countup') {
+        timerDisplay.textContent = formatTime(elapsedTime);
+      } else {
+        timerDisplay.textContent = formatTime(countdownRemainingMs);
+      }
+    }
+
+    // --- Engine Controls ---
+    function startTimer() {
+      if (state === 'running') return;
+
+      if (mode === 'countdown' && state === 'idle') {
+        const h = parseInt(inputHours.value) || 0;
+        const m = parseInt(inputMinutes.value) || 0;
+        const s = parseInt(inputSeconds.value) || 0;
+        countdownInitialMs = (h * 3600 + m * 60 + s) * 1000;
+        if (countdownInitialMs <= 0) {
+          showToast('Please enter a valid duration');
+          return;
+        }
+        countdownRemainingMs = countdownInitialMs;
+      }
+
+      state = 'running';
+      startTime = performance.now() - (mode === 'countup' ? elapsedTime : (countdownInitialMs - countdownRemainingMs));
+
+      startPauseBtn.textContent = 'Pause';
+      lapBtn.disabled = false;
+      skipBtn.disabled = false;
+      resetBtn.disabled = false;
+      timerSubtitle.textContent = mode === 'countup' ? 'Counting up...' : 'Counting down...';
+
+      timerInterval = requestAnimationFrame(tick);
+    }
+
+    function tick() {
+      if (state !== 'running') return;
+
+      const now = performance.now();
+      if (mode === 'countup') {
+        elapsedTime = now - startTime;
+        updateDisplay();
+        timerInterval = requestAnimationFrame(tick);
+      } else {
+        const elapsed = now - startTime;
+        countdownRemainingMs = countdownInitialMs - elapsed;
+        if (countdownRemainingMs <= 0) {
+          countdownRemainingMs = 0;
+          updateDisplay();
+          pauseTimer();
+          playBeep();
+          timerSubtitle.textContent = 'Time is Up!';
+          showToast('⏰ Time Up!');
+          openAnalyticsModal();
+          saveSessionToHistory();
+          return;
+        }
+        updateDisplay();
+        timerInterval = requestAnimationFrame(tick);
+      }
+    }
+
+    function pauseTimer() {
+      if (state !== 'running') return;
+      state = 'paused';
+      cancelAnimationFrame(timerInterval);
+      startPauseBtn.textContent = 'Resume';
+      timerSubtitle.textContent = 'Paused';
+    }
+
+    function resetTimer() {
+      if (laps.length > 0 && state !== 'idle') {
+        saveSessionToHistory();
+      }
+      state = 'idle';
+      cancelAnimationFrame(timerInterval);
+      elapsedTime = 0;
+      countdownRemainingMs = 0;
+      laps = [];
+      lastLapTotalTimeMs = 0;
+
+      startPauseBtn.textContent = 'Start';
+      lapBtn.disabled = true;
+      skipBtn.disabled = true;
+      timerSubtitle.textContent = 'Ready for practice';
+
+      updateDisplay();
+      renderLaps();
+    }
+
+    // --- Question Lap & Skip Logic ---
+    function recordQuestion(isSkipped = false) {
+      if (state === 'idle') return;
+
+      const currentTotalMs = mode === 'countup' ? elapsedTime : (countdownInitialMs - countdownRemainingMs);
+      const questionLapMs = currentTotalMs - lastLapTotalTimeMs;
+      lastLapTotalTimeMs = currentTotalMs;
+
+      const qIndex = laps.length + 1;
+      const prefix = tagPatternSelect.value;
+      const defaultTag = `${prefix}${qIndex}`;
+
+      laps.push({
+        id: Date.now() + Math.random(),
+        questionNum: qIndex,
+        tag: defaultTag,
+        lapTimeMs: questionLapMs,
+        totalTimeMs: currentTotalMs,
+        isSkipped: isSkipped,
+        excludeFromMean: isSkipped
+      });
+
+      renderLaps();
+      showToast(isSkipped ? `Skipped ${defaultTag}` : `Logged ${defaultTag}`);
+    }
+
+    function renderLaps() {
+      questionCountSpan.textContent = laps.length;
+
+      if (laps.length === 0) {
+        lapsTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">No question laps recorded yet. Press "Next Q" or "Skip Q" during practice.</td>
+          </tr>
+        `;
+        analyticsBtn.disabled = true;
+        exportCsvBtn.disabled = true;
+        copyTsvBtn.disabled = true;
+        return;
+      }
+
+      analyticsBtn.disabled = false;
+      exportCsvBtn.disabled = false;
+      copyTsvBtn.disabled = false;
+
+      // Calculate mean/average over non-excluded laps
+      const validLaps = laps.filter(l => !l.excludeFromMean);
+      const meanLapTimeMs = validLaps.length > 0 ? (validLaps.reduce((sum, l) => sum + l.lapTimeMs, 0) / validLaps.length) : 0;
+
+      lapsTableBody.innerHTML = laps.slice().reverse().map(lap => {
+        let paceHtml = '';
+
+        if (lap.excludeFromMean) {
+          paceHtml = `<span class="badge-status">${lap.isSkipped ? 'Skipped' : 'Excluded'}</span>`;
+        } else if (meanLapTimeMs > 0) {
+          const diffMs = lap.lapTimeMs - meanLapTimeMs;
+          const diffSecs = (Math.abs(diffMs) / 1000).toFixed(1);
+          if (Math.abs(diffMs) < 1500) {
+            paceHtml = `<span class="badge-status">Avg Pace</span>`;
+          } else if (diffMs < 0) {
+            paceHtml = `<span class="badge-status">-${diffSecs}s</span>`;
+          } else {
+            paceHtml = `<span class="badge-status">+${diffSecs}s</span>`;
+          }
+        }
+
+        const toggleBtnClass = lap.excludeFromMean ? 'mean-excluded' : '';
+        const toggleBtnText = lap.excludeFromMean ? 'Excluded' : 'In Mean';
+
+        return `
+          <tr>
+            <td>
+              <span class="tag-editable" onclick="editLapTag('${lap.id}')" title="Click to rename tag">
+                ${lap.tag}
+              </span>
+            </td>
+            <td>${formatTime(lap.lapTimeMs, false)}</td>
+            <td>${formatTime(lap.totalTimeMs, false)}</td>
+            <td>${paceHtml}</td>
+            <td>
+              <button class="mean-toggle-btn ${toggleBtnClass}" onclick="toggleMeanExclusion('${lap.id}')">
+                ${toggleBtnText}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // --- Interactive Editing & Outlier Toggle ---
+    window.editLapTag = function(id) {
+      const lap = laps.find(l => String(l.id) === String(id));
+      if (!lap) return;
+      const newTag = prompt('Edit Question Tag:', lap.tag);
+      if (newTag !== null && newTag.trim() !== '') {
+        lap.tag = newTag.trim();
+        renderLaps();
+      }
+    };
+
+    window.toggleMeanExclusion = function(id) {
+      const lap = laps.find(l => String(l.id) === String(id));
+      if (!lap) return;
+      lap.excludeFromMean = !lap.excludeFromMean;
+      renderLaps();
+    };
+
+    // --- Session Performance Analytics ---
+    function getAnalyticsData() {
+      if (laps.length === 0) return null;
+
+      const totalQs = laps.length;
+      const skippedLaps = laps.filter(l => l.isSkipped);
+      const completedLaps = laps.filter(l => !l.isSkipped);
+      const validLaps = laps.filter(l => !l.excludeFromMean);
+
+      const totalTimeMs = lastLapTotalTimeMs;
+      const meanTimeMs = validLaps.length > 0 ? (validLaps.reduce((s, l) => s + l.lapTimeMs, 0) / validLaps.length) : 0;
+
+      let fastestLap = null;
+      let slowestLap = null;
+
+      if (completedLaps.length > 0) {
+        fastestLap = completedLaps.reduce((min, l) => l.lapTimeMs < min.lapTimeMs ? l : min, completedLaps[0]);
+        slowestLap = completedLaps.reduce((max, l) => l.lapTimeMs > max.lapTimeMs ? l : max, completedLaps[0]);
+      }
+
+      return {
+        totalQs,
+        completedCount: completedLaps.length,
+        skippedCount: skippedLaps.length,
+        totalTimeFormatted: formatTime(totalTimeMs, false),
+        meanTimeFormatted: formatTime(meanTimeMs, false),
+        fastestTag: fastestLap ? fastestLap.tag : 'N/A',
+        fastestTimeFormatted: fastestLap ? formatTime(fastestLap.lapTimeMs, false) : 'N/A',
+        slowestTag: slowestLap ? slowestLap.tag : 'N/A',
+        slowestTimeFormatted: slowestLap ? formatTime(slowestLap.lapTimeMs, false) : 'N/A'
+      };
+    }
+
+    function openAnalyticsModal() {
+      const data = getAnalyticsData();
+      if (!data) return;
+
+      analyticsGrid.innerHTML = `
+        <div class="analytics-item">
+          <div class="analytics-label">Total Duration</div>
+          <div class="analytics-value">${data.totalTimeFormatted}</div>
+        </div>
+        <div class="analytics-item">
+          <div class="analytics-label">Questions Attempted</div>
+          <div class="analytics-value">${data.completedCount} / ${data.totalQs} (${data.skippedCount} Skipped)</div>
+        </div>
+        <div class="analytics-item">
+          <div class="analytics-label">Mean Pace (Completed)</div>
+          <div class="analytics-value">${data.meanTimeFormatted}</div>
+        </div>
+        <div class="analytics-item">
+          <div class="analytics-label">Fastest Question</div>
+          <div class="analytics-value">${data.fastestTag} (${data.fastestTimeFormatted})</div>
+        </div>
+        <div class="analytics-item">
+          <div class="analytics-label">Slowest Question</div>
+          <div class="analytics-value">${data.slowestTag} (${data.slowestTimeFormatted})</div>
+        </div>
+        <div class="analytics-item">
+          <div class="analytics-label">Completion Rate</div>
+          <div class="analytics-value">${((data.completedCount / data.totalQs) * 100).toFixed(0)}%</div>
+        </div>
+      `;
+
+      analyticsModal.classList.add('active');
+    }
+
+    // --- Analytics-Enriched Spreadsheet Exporters ---
+    function exportCSV() {
+      if (laps.length === 0) return;
+      const data = getAnalyticsData();
+
+      let csv = '=== HKDSE PRACTICE PAPER ANALYSIS SUMMARY ===\n';
+      csv += `Date,"${new Date().toLocaleString()}"\n`;
+      csv += `Practice Mode,"${mode === 'countup' ? 'Count Up' : 'Count Down'}"\n`;
+      csv += `Total Duration,"${data.totalTimeFormatted}"\n`;
+      csv += `Total Questions,${data.totalQs}\n`;
+      csv += `Completed Questions,${data.completedCount}\n`;
+      csv += `Skipped Questions,${data.skippedCount}\n`;
+      csv += `Average Time per Completed Q,"${data.meanTimeFormatted}"\n`;
+      csv += `Fastest Question,"${data.fastestTag} (${data.fastestTimeFormatted})"\n`;
+      csv += `Slowest Question,"${data.slowestTag} (${data.slowestTimeFormatted})"\n\n`;
+
+      csv += '=== QUESTION SPLIT DETAILS ===\n';
+      csv += 'Question Tag,Status,Question Time (Formatted),Question Time (Seconds),Total Elapsed,Included in Mean\n';
+      laps.forEach(lap => {
+        const status = lap.isSkipped ? 'Skipped' : 'Completed';
+        const inMean = lap.excludeFromMean ? 'No' : 'Yes';
+        csv += `"${lap.tag}",${status},${formatTime(lap.lapTimeMs, false)},${(lap.lapTimeMs / 1000).toFixed(1)},${formatTime(lap.totalTimeMs, false)},${inMean}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dse_past_paper_analysis_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Downloaded Full Analysis CSV!');
+    }
+
+    function copyTSV() {
+      if (laps.length === 0) return;
+      const data = getAnalyticsData();
+
+      let tsv = 'HKDSE PAPER ANALYSIS SUMMARY\n';
+      tsv += `Date:\t${new Date().toLocaleString()}\n`;
+      tsv += `Total Duration:\t${data.totalTimeFormatted}\n`;
+      tsv += `Attempted:\t${data.completedCount} of ${data.totalQs} (${data.skippedCount} Skipped)\n`;
+      tsv += `Mean Pace:\t${data.meanTimeFormatted}\n`;
+      tsv += `Fastest:\t${data.fastestTag} (${data.fastestTimeFormatted})\n`;
+      tsv += `Slowest:\t${data.slowestTag} (${data.slowestTimeFormatted})\n\n`;
+
+      tsv += 'Question Tag\tStatus\tQuestion Time\tTotal Elapsed\tIn Mean\n';
+      laps.forEach(lap => {
+        const status = lap.isSkipped ? 'Skipped' : 'Completed';
+        const inMean = lap.excludeFromMean ? 'No' : 'Yes';
+        tsv += `${lap.tag}\t${status}\t${formatTime(lap.lapTimeMs, false)}\t${formatTime(lap.totalTimeMs, false)}\t${inMean}\n`;
+      });
+
+      navigator.clipboard.writeText(tsv).then(() => {
+        showToast('Full Analysis copied! Paste into Excel / Google Sheets');
+      });
+    }
+
+    // --- LocalStorage History ---
+    function saveSessionToHistory() {
+      if (laps.length === 0) return;
+      const history = JSON.parse(localStorage.getItem('dse_timer_history') || '[]');
+      const data = getAnalyticsData();
+      const session = {
+        id: Date.now(),
+        date: new Date().toLocaleString(),
+        mode: mode === 'countup' ? 'Count Up' : 'Count Down',
+        questionsCount: laps.length,
+        totalDurationFormatted: formatTime(lastLapTotalTimeMs, false),
+        analytics: data,
+        laps: laps
+      };
+      history.unshift(session);
+      localStorage.setItem('dse_timer_history', JSON.stringify(history.slice(0, 30)));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const history = JSON.parse(localStorage.getItem('dse_timer_history') || '[]');
+      if (history.length === 0) {
+        historyTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">No practice history saved yet.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      historyTableBody.innerHTML = history.map(item => `
+        <tr>
+          <td><small>${item.date}</small></td>
+          <td>${item.mode}</td>
+          <td>${item.questionsCount} Qs</td>
+          <td>${item.totalDurationFormatted}</td>
+          <td><button class="btn btn-secondary btn-sm" onclick="exportHistoryItem(${item.id})">Export CSV</button></td>
+        </tr>
+      `).join('');
+    }
+
+    window.exportHistoryItem = function(id) {
+      const history = JSON.parse(localStorage.getItem('dse_timer_history') || '[]');
+      const item = history.find(h => h.id === id);
+      if (!item) return;
+
+      let csv = '=== HKDSE PRACTICE PAPER ANALYSIS SUMMARY ===\n';
+      csv += `Date,"${item.date}"\n`;
+      csv += `Practice Mode,"${item.mode}"\n`;
+      csv += `Total Duration,"${item.totalDurationFormatted}"\n\n`;
+
+      csv += '=== QUESTION SPLIT DETAILS ===\n';
+      csv += 'Question Tag,Status,Question Time (Formatted),Question Time (Seconds),Total Elapsed,Included in Mean\n';
+      item.laps.forEach(lap => {
+        const status = lap.isSkipped ? 'Skipped' : 'Completed';
+        const inMean = lap.excludeFromMean ? 'No' : 'Yes';
+        csv += `"${lap.tag}",${status},${formatTime(lap.lapTimeMs, false)},${(lap.lapTimeMs / 1000).toFixed(1)},${formatTime(lap.totalTimeMs, false)},${inMean}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dse_past_paper_${item.id}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    // --- Toast & Theme ---
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    // --- Event Listeners ---
+    modeCountUpBtn.addEventListener('click', () => {
+      if (state === 'running') return;
+      mode = 'countup';
+      modeCountUpBtn.classList.add('active');
+      modeCountDownBtn.classList.remove('active');
+      countdownInputs.style.display = 'none';
+      resetTimer();
+    });
+
+    modeCountDownBtn.addEventListener('click', () => {
+      if (state === 'running') return;
+      mode = 'countdown';
+      modeCountDownBtn.classList.add('active');
+      modeCountUpBtn.classList.remove('active');
+      countdownInputs.style.display = 'flex';
+      resetTimer();
+    });
+
+    startPauseBtn.addEventListener('click', () => {
+      if (state === 'running') {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    lapBtn.addEventListener('click', () => recordQuestion(false));
+    skipBtn.addEventListener('click', () => recordQuestion(true));
+    resetBtn.addEventListener('click', resetTimer);
+
+    analyticsBtn.addEventListener('click', openAnalyticsModal);
+    closeAnalyticsBtn.addEventListener('click', () => analyticsModal.classList.remove('active'));
+    downloadAnalyticsCsvBtn.addEventListener('click', exportCSV);
+
+    exportCsvBtn.addEventListener('click', exportCSV);
+    copyTsvBtn.addEventListener('click', copyTSV);
+
+    historyBtn.addEventListener('click', () => {
+      renderHistory();
+      historyModal.classList.add('active');
+    });
+
+    closeHistoryBtn.addEventListener('click', () => historyModal.classList.remove('active'));
+
+    analyticsModal.addEventListener('click', (e) => {
+      if (e.target === analyticsModal) analyticsModal.classList.remove('active');
+    });
+
+    historyModal.addEventListener('click', (e) => {
+      if (e.target === historyModal) historyModal.classList.remove('active');
+    });
+
+    // --- Keyboard Shortcuts ---
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        startPauseBtn.click();
+      } else if (e.code === 'Enter' || e.code === 'KeyL') {
+        e.preventDefault();
+        if (state === 'running') recordQuestion(false);
+      } else if (e.code === 'KeyS') {
+        e.preventDefault();
+        if (state === 'running') recordQuestion(true);
+      } else if (e.code === 'KeyR') {
+        e.preventDefault();
+        resetTimer();
+      }
+    });
+
+    // Initialize display
+    updateDisplay();
+  </script>
+</body>
+</html>
