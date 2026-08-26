@@ -2,18 +2,7 @@
 
 <p align="center">
   <img src="app_icon.jpg" width="128" height="128" alt="Know Your Time Logo" style="border-radius: 28px;">
-</p>
-
-<p align="center">
-  <b>A minimalist, Apple-inspired past paper timer and split-time analytics web application built for HKDSE students.</b>
-</p>
-
-<p align="center">
-  <a href="https://27dser.github.io/Know-your-time/"><img src="https://img.shields.io/badge/Live%20Demo-Open%20App-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Live Demo"></a>
-  <img src="https://img.shields.io/badge/License-MIT-black?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Offline-100%25-black?style=for-the-badge" alt="Offline Ready">
-</p>
-
+  
 ---
 
 ## ✨ Features
